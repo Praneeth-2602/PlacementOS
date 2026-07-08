@@ -1,0 +1,22 @@
+[
+  {"subject": "OS", "topic": "Process vs Thread"},
+  {"subject": "OS", "topic": "CPU Scheduling"},
+  {"subject": "OS", "topic": "Deadlocks"},
+  {"subject": "OS", "topic": "Paging and Segmentation"},
+  {"subject": "OS", "topic": "Virtual Memory"},
+  {"subject": "DBMS", "topic": "Normalization"},
+  {"subject": "DBMS", "topic": "Transactions and ACID"},
+  {"subject": "DBMS", "topic": "Indexing"},
+  {"subject": "DBMS", "topic": "Joins"},
+  {"subject": "DBMS", "topic": "Isolation Levels"},
+  {"subject": "CN", "topic": "OSI Model"},
+  {"subject": "CN", "topic": "TCP vs UDP"},
+  {"subject": "CN", "topic": "HTTP and HTTPS"},
+  {"subject": "CN", "topic": "DNS"},
+  {"subject": "CN", "topic": "Congestion Control"},
+  {"subject": "OOP", "topic": "Encapsulation"},
+  {"subject": "OOP", "topic": "Inheritance"},
+  {"subject": "OOP", "topic": "Polymorphism"},
+  {"subject": "OOP", "topic": "Abstraction"},
+  {"subject": "OOP", "topic": "SOLID Principles"}
+]

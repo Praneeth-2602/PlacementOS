@@ -1,0 +1,12 @@
+[
+  {"question": "Explain the difference between BFS and DFS.", "answer": "BFS explores level by level; DFS goes deep first.", "company": "Google", "difficulty": "EASY", "topic": "Graphs", "tags": ["dsa"], "type": "TECHNICAL"},
+  {"question": "How do you detect a cycle in a linked list?", "answer": "Use Floyd's tortoise and hare pointers.", "company": "Amazon", "difficulty": "EASY", "topic": "Linked List", "tags": ["dsa"], "type": "TECHNICAL"},
+  {"question": "Design an LRU cache.", "answer": "Use doubly linked list + hashmap for O(1) access and eviction.", "company": "Meta", "difficulty": "MEDIUM", "topic": "System Design", "tags": ["design"], "type": "TECHNICAL"},
+  {"question": "What are database indexes and trade-offs?", "answer": "Indexes speed reads but add write/storage overhead.", "company": "Microsoft", "difficulty": "MEDIUM", "topic": "DBMS", "tags": ["db"], "type": "TECHNICAL"},
+  {"question": "Explain CAP theorem.", "answer": "Distributed systems can guarantee at most two of consistency, availability, partition tolerance.", "company": "Uber", "difficulty": "HARD", "topic": "System Design", "tags": ["distributed"], "type": "TECHNICAL"},
+  {"question": "How does quicksort work?", "answer": "Partition around pivot; recursively sort partitions.", "company": "Google", "difficulty": "MEDIUM", "topic": "Sorting", "tags": ["dsa"], "type": "TECHNICAL"},
+  {"question": "What is normalization in DBMS?", "answer": "Process of reducing redundancy by decomposing tables.", "company": "Oracle", "difficulty": "EASY", "topic": "DBMS", "tags": ["db"], "type": "TECHNICAL"},
+  {"question": "How does TCP 3-way handshake work?", "answer": "SYN, SYN-ACK, ACK for connection establishment.", "company": "Cisco", "difficulty": "MEDIUM", "topic": "CN", "tags": ["network"], "type": "TECHNICAL"},
+  {"question": "Difference between process and thread?", "answer": "Processes are isolated; threads share memory.", "company": "Adobe", "difficulty": "EASY", "topic": "OS", "tags": ["os"], "type": "TECHNICAL"},
+  {"question": "What is dynamic programming?", "answer": "Optimize recursion with overlapping subproblems using memoization/tabulation.", "company": "Netflix", "difficulty": "MEDIUM", "topic": "DP", "tags": ["dsa"], "type": "TECHNICAL"}
+]

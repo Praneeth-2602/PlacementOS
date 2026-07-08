@@ -1,0 +1,10 @@
+[
+  {"question": "Tell me about yourself.", "answer": "Use a concise present-past-future structure.", "company": "General", "difficulty": "EASY", "topic": "Introduction", "tags": ["hr"], "type": "HR"},
+  {"question": "Why do you want to join our company?", "answer": "Align your values and role fit with company goals.", "company": "Google", "difficulty": "EASY", "topic": "Motivation", "tags": ["hr"], "type": "HR"},
+  {"question": "Describe a conflict you faced and how you resolved it.", "answer": "Use STAR: highlight communication and ownership.", "company": "Amazon", "difficulty": "MEDIUM", "topic": "Behavioral", "tags": ["hr"], "type": "HR"},
+  {"question": "What is your biggest weakness?", "answer": "Pick a real area and show active improvement plan.", "company": "General", "difficulty": "MEDIUM", "topic": "Self Awareness", "tags": ["hr"], "type": "HR"},
+  {"question": "Where do you see yourself in 5 years?", "answer": "Show growth mindset and alignment with role trajectory.", "company": "Meta", "difficulty": "EASY", "topic": "Career", "tags": ["hr"], "type": "HR"},
+  {"question": "Tell me about a time you failed.", "answer": "Be accountable and focus on lessons learned.", "company": "General", "difficulty": "MEDIUM", "topic": "Behavioral", "tags": ["hr"], "type": "HR"},
+  {"question": "How do you prioritize when deadlines conflict?", "answer": "Clarify impact, communicate trade-offs, and sequence execution.", "company": "Microsoft", "difficulty": "MEDIUM", "topic": "Execution", "tags": ["hr"], "type": "HR"},
+  {"question": "Why should we hire you?", "answer": "Match your strengths with role requirements and outcomes.", "company": "General", "difficulty": "EASY", "topic": "Value Proposition", "tags": ["hr"], "type": "HR"}
+]

@@ -1,0 +1,24 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+# PostgreSQL driver — install for production: pip install psycopg[binary]
+pydantic[email]==2.10.3
+pydantic-settings==2.6.1
+python-jose[cryptography]==3.3.0
+authlib==1.4.0
+httpx==0.28.1
+redis==5.2.1
+arq==0.26.1
+cryptography==44.0.0
+python-multipart==0.0.20
+itsdangerous==2.2.0
+structlog==24.4.0
+sentry-sdk[fastapi]==2.19.2
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pypdf==5.1.0
+boto3==1.35.90
+anthropic==0.40.0
+slowapi==0.1.9
+reportlab==4.2.5

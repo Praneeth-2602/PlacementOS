@@ -1,0 +1,17 @@
+[
+  {"section": "QUANT", "topic": "Percentages"},
+  {"section": "QUANT", "topic": "Profit and Loss"},
+  {"section": "QUANT", "topic": "Time and Work"},
+  {"section": "QUANT", "topic": "Probability"},
+  {"section": "QUANT", "topic": "Permutation and Combination"},
+  {"section": "LOGICAL", "topic": "Seating Arrangement"},
+  {"section": "LOGICAL", "topic": "Syllogisms"},
+  {"section": "LOGICAL", "topic": "Blood Relations"},
+  {"section": "LOGICAL", "topic": "Series"},
+  {"section": "LOGICAL", "topic": "Puzzles"},
+  {"section": "VERBAL", "topic": "Reading Comprehension"},
+  {"section": "VERBAL", "topic": "Para Jumbles"},
+  {"section": "VERBAL", "topic": "Sentence Correction"},
+  {"section": "VERBAL", "topic": "Vocabulary"},
+  {"section": "VERBAL", "topic": "Synonyms and Antonyms"}
+]
