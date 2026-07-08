@@ -32,18 +32,20 @@ Data flows in from LeetCode sync, GitHub sync, CS topic progress, mock sessions,
 
 ## Implementation Status
 
-### Phase 1 — Foundation ✅ (implemented locally)
+All five phases are implemented locally. Production deploy and live third-party credentials are still pending.
+
+### Phase 1 — Foundation ✅
 
 | Area | Status | Notes |
 |------|--------|-------|
 | Repo structure (`backend/` + `frontend/`) | ✅ | Replaces original Turborepo plan |
-| Full database schema (22 tables) | ✅ | SQLAlchemy + Alembic |
+| Full database schema + Alembic migrations | ✅ | Migrations `001`, `002` |
 | Google + GitHub OAuth | ✅ | Authlib; needs OAuth app credentials |
 | JWT httpOnly cookies + refresh | ✅ | |
 | Auth guards (JWT + roles) | ✅ | Tested via `/admin/ping` |
 | Health endpoint | ✅ | `GET /health` |
 | Login page + OAuth buttons | ✅ | |
-| Dashboard shell + sidebar nav | ✅ | Stub pages for all modules |
+| Dashboard shell + sidebar nav | ✅ | |
 | Route protection middleware | ✅ | Playwright E2E configured |
 | Zustand stores + TanStack Query | ✅ | |
 | CI (pytest + lint/build) | ✅ | `.github/workflows/ci.yml` |
@@ -51,7 +53,7 @@ Data flows in from LeetCode sync, GitHub sync, CS topic progress, mock sessions,
 | Production deploy | ⏳ | Railway + Vercel not yet configured |
 | Sentry live errors | ⏳ | Hooks ready; needs DSN |
 
-### Phase 2 — Integrations ✅ (implemented locally)
+### Phase 2 — Integrations ✅
 
 | Area | Status |
 |------|--------|
@@ -65,17 +67,44 @@ Data flows in from LeetCode sync, GitHub sync, CS topic progress, mock sessions,
 | Frontend: ReadinessGauge, sync controls, charts | ✅ |
 | Learn page: topic progress grid | ✅ |
 
-### Phases 3–5 ✅ (implemented locally)
+### Phase 3 — Learn, Prepare, Opportunities ✅
 
-| Phase | Highlights |
-|-------|------------|
-| **3** | Learn (CS/Aptitude/Notes), Prepare (question bank, mock sessions, STAR), Opportunities (Kanban + state machine), full readiness engine, dashboard today plan |
-| **4** | Resume upload/ATS/export, Build projects + portfolio, notifications, dark mode, mobile nav, theme toggle |
-| **5** | Interview Twin (Claude/mock), ATS V2 + JD matching, company readiness, benchmarks, `/track` analytics, rate limiting, security headers |
+| Area | Status |
+|------|--------|
+| Learn: CS fundamentals + Aptitude progress APIs | ✅ |
+| Notes CRUD | ✅ |
+| Prepare: question bank, STAR templates, mock sessions | ✅ |
+| Opportunities: CRUD, status state machine, deadlines, calendar | ✅ |
+| Full 6-category readiness engine + recommendations | ✅ |
+| Dashboard today's plan + recent activity + streaks/weekly goals | ✅ |
+| Seed script (`python -m scripts.seed`) | ✅ |
+| Frontend: Learn tabs, Prepare tabs, Opportunities Kanban/table | ✅ |
 
-Run seed data: `cd backend && python -m scripts.seed`
+### Phase 4 — Resume, Build, Polish ✅
 
-See [`docs/`](./docs/) for full specifications.
+| Area | Status |
+|------|--------|
+| Resume CRUD, PDF upload, ATS V1 analyze, export | ✅ |
+| Build projects CRUD, GitHub repo link, portfolio | ✅ |
+| Notifications list / read / unread badge | ✅ |
+| User profile + settings (email prefs) | ✅ |
+| Dark mode / theme toggle | ✅ |
+| Mobile bottom nav | ✅ |
+| Storybook scaffold (`npm run storybook`) | ✅ |
+| Frontend: resume page + builder, build page, notifications bell | ✅ |
+
+### Phase 5 — Intelligence & Hardening ✅
+
+| Area | Status |
+|------|--------|
+| Interview Twin (`/prepare/interview-twin`) Claude + mock fallback | ✅ |
+| ATS V2 (JD keyword match, suggestions) | ✅ |
+| Company readiness + peer benchmarks | ✅ |
+| Track analytics (heatmap, score history, radar, weekly report) | ✅ |
+| Google Calendar sync endpoints | ✅ |
+| Push subscribe/unsubscribe + SW stub | ✅ |
+| Security headers + slowapi rate limiting | ✅ |
+| Frontend: Interview Twin chat, `/track` charts, benchmark cards | ✅ |
 
 ---
 
@@ -85,27 +114,25 @@ See [`docs/`](./docs/) for full specifications.
 PlacementOS/
 ├── backend/                 # FastAPI API (Python 3.13)
 │   ├── app/
-│   │   ├── routers/         # health, auth, admin (more in Phase 2+)
-│   │   ├── models/          # SQLAlchemy ORM (all 22 tables)
-│   │   ├── services/        # Business logic
+│   │   ├── routers/         # auth, learn, prepare, opportunities, resume, build, track, …
+│   │   ├── models/          # SQLAlchemy ORM
+│   │   ├── services/        # Sync, readiness, ATS, jobs, notifications
 │   │   ├── schemas/         # Pydantic request/response types
-│   │   └── middleware/      # Logging, RFC 7807 errors
-│   ├── alembic/             # Database migrations
+│   │   ├── workers/         # ARQ background jobs
+│   │   └── middleware/      # Logging, RFC 7807, security headers
+│   ├── alembic/             # Migrations (001 init, 002 phase3–5)
+│   ├── scripts/             # Seed data (CS, aptitude, questions)
 │   ├── tests/               # pytest
 │   └── Dockerfile
 ├── frontend/                # Next.js 14 App Router
-│   ├── src/app/             # Pages (login, dashboard, module stubs)
-│   ├── src/components/      # UI + sidebar
+│   ├── src/app/             # login, dashboard, learn, prepare, opportunities, resume, build, track
+│   ├── src/components/      # UI, sidebar, mobile nav, dashboard widgets
+│   ├── src/hooks/           # TanStack Query hooks
 │   ├── src/stores/          # Zustand (ui, user, sync)
-│   ├── src/lib/api.ts       # API client + TypeScript types
+│   ├── src/lib/api.ts       # Typed API client
+│   ├── .storybook/          # Storybook
 │   └── e2e/                 # Playwright tests
-├── docs/
-│   ├── tech-stack.md        # Architecture reference (start here)
-│   ├── phase-1-foundation.md
-│   ├── phase-2-integrations.md
-│   ├── phase-3-learn-prepare-opportunities.md
-│   ├── phase-4-resume-build-polish.md
-│   └── phase-5-intelligence-hardening.md
+├── docs/                    # Phase specs + tech-stack.md
 └── .github/workflows/ci.yml
 ```
 
@@ -115,16 +142,18 @@ PlacementOS/
 
 | Layer | Technology |
 |-------|------------|
-| **Backend** | FastAPI, SQLAlchemy 2.0, Alembic, Pydantic, Authlib |
-| **Frontend** | Next.js 14, TypeScript, Tailwind CSS, shadcn-style UI |
+| **Backend** | FastAPI, SQLAlchemy 2.0, Alembic, Pydantic, Authlib, ARQ |
+| **Frontend** | Next.js 14, TypeScript, Tailwind CSS, shadcn-style UI, Recharts |
 | **State / data** | Zustand, TanStack Query |
 | **Database** | PostgreSQL (Neon) / SQLite for local dev |
-| **Cache / jobs** | Upstash Redis; ARQ workers (Phase 2+) |
+| **Cache / jobs** | Upstash Redis; ARQ workers |
 | **Auth** | Google + GitHub OAuth → JWT httpOnly cookies |
-| **Testing** | pytest (API), Playwright (E2E) |
+| **AI / ATS** | Anthropic Claude (Interview Twin); rule-based ATS V1/V2 |
+| **Storage / email** | Local uploads or Cloudflare R2; Resend (optional) |
+| **Testing** | pytest (API), Playwright (E2E), Storybook |
 | **Deploy** | Railway (API), Vercel (frontend) |
 
-Full stack mapping from the original NestJS plan: [`docs/tech-stack.md`](./docs/tech-stack.md)
+Full stack mapping: [`docs/tech-stack.md`](./docs/tech-stack.md)
 
 ---
 
@@ -145,8 +174,14 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env             # fill in OAuth credentials
 alembic upgrade head
-python -m scripts.seed          # CS topics, aptitude, 200+ questions
+python -m scripts.seed           # CS topics, aptitude, 200+ questions
 uvicorn app.main:app --reload --port 8000
+```
+
+Optional (background jobs when Redis is configured):
+
+```bash
+arq app.workers.settings.WorkerSettings
 ```
 
 API docs (dev): [http://localhost:8000/docs](http://localhost:8000/docs)
@@ -164,8 +199,6 @@ Open [http://localhost:3000](http://localhost:3000). Unauthenticated users are r
 
 ### OAuth Callback URLs
 
-Register these in your Google/GitHub OAuth apps:
-
 ```
 http://localhost:8000/auth/google/callback
 http://localhost:8000/auth/github/callback
@@ -180,27 +213,33 @@ cd backend && source .venv/bin/activate && pytest -q
 # Frontend build
 cd frontend && npm run build
 
+# Storybook
+cd frontend && npm run storybook
+
 # E2E (both servers must be running)
 cd frontend && npm run test:e2e
 ```
 
 ---
 
-## API Endpoints (Phase 1)
+## API Surface (by phase)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Health check |
-| `GET` | `/auth/google` | Google OAuth redirect |
-| `GET` | `/auth/google/callback` | Google callback → sets cookies |
-| `GET` | `/auth/github` | GitHub OAuth redirect |
-| `GET` | `/auth/github/callback` | GitHub callback → sets cookies |
-| `POST` | `/auth/logout` | Clear cookies |
-| `POST` | `/auth/refresh` | Rotate JWT |
-| `GET` | `/auth/me` | Current user + integrations |
-| `GET` | `/admin/ping` | Admin-only (role guard test) |
+### Phase 1 — Auth / health
+`GET /health` · `GET /auth/{google,github}` · callbacks · `POST /auth/logout` · `POST /auth/refresh` · `GET /auth/me` · `GET /admin/ping`
 
-Phase 2+ endpoints are documented in the respective phase files under `docs/`.
+### Phase 2 — Integrations
+`/leetcode/*` · `/github/*` · `/readiness` · `/readiness/recalculate` · `/dashboard` · `/dashboard/today`
+
+### Phase 3 — Study modules
+`/learn/*` · `/notes/*` · `/prepare/questions` · `/prepare/sessions` · `/prepare/star-templates` · `/opportunities/*` · `/readiness/recommendations` · `/dashboard/recent-activity`
+
+### Phase 4 — Resume / Build / polish
+`/resume/*` · `/build/*` · `/notifications/*` · `/users/profile` · `/users/settings`
+
+### Phase 5 — Intelligence
+`/prepare/interview-twin/*` · `/resume/:id/analyze-v2` · `/readiness/by-company/:company` · `/readiness/benchmarks` · `/track/*` · calendar sync · push subscribe
+
+Full endpoint details live in [`docs/`](./docs/).
 
 ---
 
@@ -208,10 +247,13 @@ Phase 2+ endpoints are documented in the respective phase files under `docs/`.
 
 | File | Key variables |
 |------|---------------|
-| `backend/.env` | `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `GOOGLE_CLIENT_*`, `GITHUB_CLIENT_*`, `FRONTEND_URL`, `API_URL` |
-| `frontend/.env.local` | `NEXT_PUBLIC_API_URL`, `INTERNAL_API_URL` |
+| `backend/.env` | `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `GOOGLE_CLIENT_*`, `GITHUB_CLIENT_*`, `FRONTEND_URL`, `API_URL`, `REDIS_URL` |
+| `backend/.env` (optional Phase 4–5) | `ANTHROPIC_API_KEY`, `R2_*`, `RESEND_API_KEY`, `SENTRY_DSN` |
+| `frontend/.env.local` | `NEXT_PUBLIC_API_URL`, `INTERNAL_API_URL`, `NEXT_PUBLIC_SENTRY_DSN` |
 
 See `.env.example` in each app for the full list.
+
+Without optional keys the app still runs: Interview Twin uses mock responses, resumes store locally under `uploads/`, and emails are logged instead of sent.
 
 ---
 
@@ -227,7 +269,8 @@ See `.env.example` in each app for the full list.
 2. Set strong `JWT_SECRET` / `JWT_REFRESH_SECRET`
 3. Set `COOKIE_SECURE=true`, `FRONTEND_URL` and `API_URL` to production domains
 4. Configure OAuth callbacks for production API URL
-5. Set `SENTRY_DSN` in both apps
+5. Set `REDIS_URL` and run the ARQ worker
+6. Optionally set `ANTHROPIC_API_KEY`, `R2_*`, `RESEND_API_KEY`, `SENTRY_DSN`
 
 ---
 
@@ -246,6 +289,7 @@ See `.env.example` in each app for the full list.
 ## Development Notes
 
 - Cookies on `localhost` are shared across ports — API on `:8000` and frontend on `:3000` work together in dev.
-- The frontend does **not** use NextAuth. OAuth is handled entirely by the FastAPI backend; the frontend redirects to API auth routes and reads session state via `GET /auth/me`.
-- Redis client is wired in Phase 1 but actively used starting Phase 2 (sync jobs, caching).
+- The frontend does **not** use NextAuth. OAuth is handled by the FastAPI backend; the frontend redirects to API auth routes and reads session state via `GET /auth/me`.
+- Without Redis, sync jobs run **inline** (good for local dev). With `REDIS_URL`, run the ARQ worker for background processing.
 - For PostgreSQL in production: install `psycopg[binary]` separately (`pip install 'psycopg[binary]'`).
+- Seed after migrate: `python -m scripts.seed`.
