@@ -1,41 +1,47 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Environment
+.env
+.env.local
+.env.*.local
 
-# testing
-/coverage
+# Next.js
+frontend/.next/
+frontend/out/
 
-# next.js
-/.next/
-/out/
+# Python
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/htmlcov/
+.coverage
 
-# production
-/build
-
-# misc
+# IDE / OS
 .DS_Store
-*.pem
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# debug
+# Logs
+*.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Database (local dev)
+*.db
+*.sqlite3
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Sentry
+.sentryclirc
