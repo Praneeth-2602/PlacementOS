@@ -8,14 +8,17 @@ from app.models import (
   CSProgress,
   CompanyProfile,
   InterviewSession,
+  LessonProgress,
   Opportunity,
   OpportunityStatus,
   Profile,
   Resume,
   ScoreHistory,
+  Submission,
+  SubmissionVerdict,
   NotificationType,
 )
-from app.models.entities import TopicStatus
+from app.models.entities import LessonStatus, TopicStatus
 from app.services.notifications import create_notification
 from app.services.readiness.scorers import (
   CSFundamentalsScorer,
@@ -61,10 +64,18 @@ class ReadinessEngine:
     )
 
     stats: LeetCodeStats | None = lc.stats if lc else None
+    # In-app judge: count distinct problems the user has solved (Phase 7) and
+    # fold them into the DSA signal alongside LeetCode data.
+    solved_in_app = (
+      self.db.query(func.count(func.distinct(Submission.problem_id)))
+      .filter(Submission.user_id == user_id, Submission.verdict == SubmissionVerdict.ACCEPTED)
+      .scalar()
+      or 0
+    )
     dsa_score = DSAScorer.compute(
       DSAScorerInput(
-        total_solved=stats.total_solved if stats else 0,
-        medium_solved=stats.medium_solved if stats else 0,
+        total_solved=(stats.total_solved if stats else 0) + solved_in_app,
+        medium_solved=(stats.medium_solved if stats else 0) + solved_in_app,
         hard_solved=stats.hard_solved if stats else 0,
         current_streak=stats.current_streak if stats else 0,
         ranking=stats.ranking if stats else None,
@@ -91,10 +102,17 @@ class ReadinessEngine:
     cs_rows = self.db.query(CSProgress).filter(CSProgress.user_id == user_id).all()
     cs_completed = sum(1 for row in cs_rows if row.status == TopicStatus.COMPLETED)
     cs_conf = sum(row.confidence for row in cs_rows) / len(cs_rows) if cs_rows else 0.0
+    # Roadmap/lesson completion (Phase 7) contributes to the CS signal.
+    lessons_completed = (
+      self.db.query(func.count(LessonProgress.id))
+      .filter(LessonProgress.user_id == user_id, LessonProgress.status == LessonStatus.COMPLETED)
+      .scalar()
+      or 0
+    )
     cs_score = CSFundamentalsScorer.compute(
       CSFundamentalsScorerInput(
-        completed_topics=cs_completed,
-        total_topics=len(cs_rows),
+        completed_topics=cs_completed + lessons_completed,
+        total_topics=len(cs_rows) + lessons_completed,
         avg_confidence=cs_conf,
       )
     )

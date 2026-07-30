@@ -22,3 +22,6 @@ boto3==1.35.90
 anthropic==0.40.0
 slowapi==0.1.9
 reportlab==4.2.5
+# Billing provider SDK — optional; imported lazily only when Stripe is enabled.
+# Install for production Stripe billing: pip install stripe
+# stripe==11.4.0

@@ -16,16 +16,38 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_column(bind, table: str, column: str) -> bool:
+    inspector = sa.inspect(bind)
+    if table not in inspector.get_table_names():
+        return False
+    return column in {c["name"] for c in inspector.get_columns(table)}
+
+
+def _has_table(bind, table: str) -> bool:
+    return table in sa.inspect(bind).get_table_names()
+
+
 def upgrade() -> None:
-    op.add_column("opportunities", sa.Column("ctc", sa.String(length=100), nullable=True))
-    op.add_column("opportunities", sa.Column("oa_date", sa.Date(), nullable=True))
-    op.add_column("opportunities", sa.Column("jd_url", sa.String(length=512), nullable=True))
-    op.add_column("opportunities", sa.Column("calendar_event_id", sa.String(length=255), nullable=True))
+    bind = op.get_bind()
+
+    # Column adds are guarded because migration 001 bootstraps the full schema
+    # from the current SQLAlchemy metadata, so these columns may already exist.
+    for name, col in (
+        ("ctc", sa.Column("ctc", sa.String(length=100), nullable=True)),
+        ("oa_date", sa.Column("oa_date", sa.Date(), nullable=True)),
+        ("jd_url", sa.Column("jd_url", sa.String(length=512), nullable=True)),
+        ("calendar_event_id", sa.Column("calendar_event_id", sa.String(length=255), nullable=True)),
+    ):
+        if not _has_column(bind, "opportunities", name):
+            op.add_column("opportunities", col)
 
     question_type = sa.Enum("TECHNICAL", "HR", name="questiontype")
     question_difficulty = sa.Enum("EASY", "MEDIUM", "HARD", name="questiondifficulty")
-    question_type.create(op.get_bind(), checkfirst=True)
-    question_difficulty.create(op.get_bind(), checkfirst=True)
+    question_type.create(bind, checkfirst=True)
+    question_difficulty.create(bind, checkfirst=True)
+
+    if _has_table(bind, "questions"):
+        return
 
     op.create_table(
         "questions",

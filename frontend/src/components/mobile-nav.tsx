@@ -1,19 +1,17 @@
 "use client";
 
-import { BarChart3, BookOpen, Briefcase, FileText, Hammer, LayoutDashboard, Target } from "lucide-react";
+import { Code2, LayoutDashboard, LibraryBig, MessagesSquare, Target } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
 const mobileItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/learn", icon: BookOpen, label: "Learn" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
+  { href: "/content", icon: LibraryBig, label: "Roadmaps" },
+  { href: "/practice", icon: Code2, label: "Practice" },
+  { href: "/community", icon: MessagesSquare, label: "Community" },
   { href: "/prepare", icon: Target, label: "Prepare" },
-  { href: "/opportunities", icon: Briefcase, label: "Opportunities" },
-  { href: "/resume", icon: FileText, label: "Resume" },
-  { href: "/build", icon: Hammer, label: "Build" },
-  { href: "/track", icon: BarChart3, label: "Track" },
 ];
 
 export function MobileNav() {
@@ -21,7 +19,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background md:hidden">
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-5">
         {mobileItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (

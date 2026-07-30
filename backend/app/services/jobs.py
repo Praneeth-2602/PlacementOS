@@ -25,6 +25,10 @@ async def _run_inline(job_name: str, **kwargs: Any) -> str:
             await run_github_sync(db, kwargs["user_id"])
         elif job_name == "score_recalc":
             ReadinessEngine(db).recalculate(kwargs["user_id"])
+        elif job_name == "judge_run":
+            from app.services.judge import process_submission
+
+            await process_submission(db, kwargs["submission_id"])
         elif job_name == "deadline_reminder":
             await deadline_reminder({})
     finally:
@@ -51,3 +55,30 @@ async def enqueue_job(job_name: str, **kwargs: Any) -> str:
 
 def list_recent_jobs(limit: int = 50) -> list[dict[str, Any]]:
     return list(reversed(_memory_jobs[-limit:]))
+
+
+async def queue_stats() -> dict[str, Any]:
+    """Return ARQ queue depth + recent job outcomes for the admin dashboard."""
+    settings = get_settings()
+    recent = list_recent_jobs()
+    stats: dict[str, Any] = {
+        "backend": "redis" if settings.redis_url else "inline",
+        "queued": 0,
+        "recent": recent,
+        "recent_count": len(recent),
+    }
+    if not settings.redis_url:
+        return stats
+
+    redis_settings = RedisSettings.from_dsn(settings.redis_url)
+    if settings.redis_token:
+        redis_settings.password = settings.redis_token
+    try:
+        pool = await create_pool(redis_settings)
+        try:
+            stats["queued"] = await pool.zcard("arq:queue")
+        finally:
+            await pool.close()
+    except Exception:  # pragma: no cover - defensive when redis unreachable
+        stats["backend"] = "unreachable"
+    return stats

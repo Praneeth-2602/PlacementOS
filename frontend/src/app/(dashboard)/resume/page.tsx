@@ -1,16 +1,18 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, Upload } from "lucide-react";
+import { Download, Sparkles, Upload, Wand2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { FeatureGate, ProBadge } from "@/components/feature-gate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useResumes } from "@/hooks/use-api";
-import { api, type ResumeItem } from "@/lib/api";
+import { ENTITLEMENTS } from "@/hooks/use-entitlements";
+import { api, type ResumeItem, type ResumeRewriteSuggestion } from "@/lib/api";
 
 function ATSDial({ score }: { score: number }) {
   const radius = 42;
@@ -45,6 +47,7 @@ export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedResume, setSelectedResume] = useState<ResumeItem | null>(null);
   const [jobDescriptionText, setJobDescriptionText] = useState("");
+  const [rewriteSuggestions, setRewriteSuggestions] = useState<ResumeRewriteSuggestion[]>([]);
   const { data: resumes = [] } = useResumes();
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["resume"] });
@@ -95,6 +98,18 @@ export default function ResumePage() {
   const setDefault = useMutation({
     mutationFn: (id: string) => api.setDefaultResume(id),
     onSuccess: refresh,
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const rewrite = useMutation({
+    mutationFn: () => {
+      if (!selectedResume) throw new Error("Select a resume first.");
+      return api.rewriteResume(selectedResume.id, { jobDescriptionText });
+    },
+    onSuccess: (response) => {
+      setRewriteSuggestions(response.data ?? []);
+      toast.success("Rewrite suggestions ready.");
+    },
     onError: (err: Error) => toast.error(err.message),
   });
 
@@ -204,6 +219,51 @@ export default function ResumePage() {
           </CardContent>
         </Card>
       </div>
+
+      <FeatureGate
+        entitlement={ENTITLEMENTS.resumeRewrite}
+        title="AI resume rewrite is a Pro feature"
+        description="Upgrade to get section-level rewrite suggestions powered by ATS V2 context."
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-primary" /> AI Rewrite Suggestions <ProBadge />
+            </CardTitle>
+            <CardDescription>Section-level improvements aligned to your target role and JD.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button onClick={() => rewrite.mutate()} disabled={!selectedResume || rewrite.isPending}>
+              <Sparkles className="mr-1 h-4 w-4" />
+              {rewrite.isPending ? "Generating..." : "Generate suggestions"}
+            </Button>
+            {rewriteSuggestions.length > 0 && (
+              <div className="space-y-3">
+                {rewriteSuggestions.map((suggestion, index) => (
+                  <div key={index} className="rounded-md border p-3">
+                    <Badge variant="secondary" className="mb-2">
+                      {suggestion.section}
+                    </Badge>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Original</p>
+                        <p className="text-sm line-through decoration-destructive/40">{suggestion.original}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-emerald-600">Suggested</p>
+                        <p className="text-sm">{suggestion.suggestion}</p>
+                      </div>
+                    </div>
+                    {suggestion.rationale && (
+                      <p className="mt-2 text-xs text-muted-foreground">Why: {suggestion.rationale}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </FeatureGate>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/sidebar";
 import { SyncStatusBadge } from "@/components/dashboard/sync-controls";
 import { MobileNav } from "@/components/mobile-nav";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { OnboardingGate } from "@/components/onboarding-gate";
 import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { UserHydrator } from "@/components/user-hydrator";
 import { useUser } from "@/hooks/use-api";
@@ -13,22 +14,35 @@ import { useUser } from "@/hooks/use-api";
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/learn": "Learn",
+  "/content": "Content & Roadmaps",
+  "/practice": "Practice",
+  "/community": "Community",
+  "/mentors": "Mentors",
   "/prepare": "Prepare",
   "/opportunities": "Opportunities",
+  "/drives": "Campus Drives",
   "/resume": "Resume",
   "/build": "Build",
   "/track": "Track",
+  "/billing": "Billing",
   "/settings": "Settings",
 };
+
+function resolveTitle(pathname: string): string {
+  if (TITLES[pathname]) return TITLES[pathname];
+  const match = Object.keys(TITLES).find((path) => pathname.startsWith(`${path}/`));
+  return match ? TITLES[match] : "PlacementOS";
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useUser();
-  const title = TITLES[pathname] ?? "PlacementOS";
+  const title = resolveTitle(pathname);
 
   return (
     <div className="flex min-h-screen">
       <UserHydrator />
+      <OnboardingGate />
       <Sidebar />
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">

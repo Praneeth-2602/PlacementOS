@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -100,6 +101,31 @@ def respond_twin(
     if next_question:
         state["messages"].append({"role": "assistant", "content": next_question})
     return ApiResponse(data={"feedback": feedback, "next_question": next_question, "done": state["turn"] >= 5})
+
+
+@router.post("/stream")
+def stream_twin(
+    body: InterviewTwinRespondRequest,
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Streaming interview responses via Server-Sent Events (Phase 9)."""
+    from app.services.ai import stream_completion
+
+    state = _sessions.get(body.session_id)
+    if not state:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    state["messages"].append({"role": "user", "content": body.answer})
+    state["turn"] += 1
+
+    def event_gen():
+        for chunk in stream_completion(
+            state["system_prompt"],
+            [{"role": "user", "content": f"Candidate answer: {body.answer}. Give feedback and the next question."}],
+        ):
+            yield f"data: {chunk}\n\n"
+        yield "event: done\ndata: [DONE]\n\n"
+
+    return StreamingResponse(event_gen(), media_type="text/event-stream")
 
 
 @router.post("/end", response_model=ApiResponse[dict])

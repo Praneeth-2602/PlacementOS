@@ -29,6 +29,81 @@ def _uuid() -> str:
 class UserRole(str, enum.Enum):
     USER = "USER"
     ADMIN = "ADMIN"
+    TPO = "TPO"
+    ORG_ADMIN = "ORG_ADMIN"
+
+
+class OrgRole(str, enum.Enum):
+    STUDENT = "STUDENT"
+    TPO = "TPO"
+    ORG_ADMIN = "ORG_ADMIN"
+
+
+class OrgType(str, enum.Enum):
+    COLLEGE = "COLLEGE"
+    COMPANY = "COMPANY"
+
+
+class MembershipStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    ACTIVE = "ACTIVE"
+    REMOVED = "REMOVED"
+
+
+class LessonStatus(str, enum.Enum):
+    NOT_STARTED = "NOT_STARTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+
+
+class SubmissionVerdict(str, enum.Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    ACCEPTED = "ACCEPTED"
+    WRONG_ANSWER = "WRONG_ANSWER"
+    TIME_LIMIT_EXCEEDED = "TIME_LIMIT_EXCEEDED"
+    RUNTIME_ERROR = "RUNTIME_ERROR"
+    COMPILATION_ERROR = "COMPILATION_ERROR"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+
+
+class MentorRequestStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    DECLINED = "DECLINED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
+
+class DriveStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+    COMPLETED = "COMPLETED"
+
+
+class DriveRoundType(str, enum.Enum):
+    OA = "OA"
+    TECHNICAL = "TECHNICAL"
+    HR = "HR"
+    GD = "GD"
+    OTHER = "OTHER"
+
+
+class SubscriptionStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    TRIALING = "TRIALING"
+    PAST_DUE = "PAST_DUE"
+    CANCELED = "CANCELED"
+    INCOMPLETE = "INCOMPLETE"
+
+
+class InvoiceStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    OPEN = "OPEN"
+    PAID = "PAID"
+    VOID = "VOID"
+    UNCOLLECTIBLE = "UNCOLLECTIBLE"
 
 
 class OAuthProvider(str, enum.Enum):
@@ -127,7 +202,10 @@ class Profile(Base):
     university: Mapped[str | None] = mapped_column(String(255), nullable=True)
     graduation_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     target_role: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    target_companies: Mapped[list | None] = mapped_column(JSON, nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    xp: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    onboarded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     settings: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -376,6 +454,7 @@ class ReadinessScore(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    org_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     dsa_score: Mapped[float] = mapped_column(Float, default=50.0)
     cs_score: Mapped[float] = mapped_column(Float, default=50.0)
     projects_score: Mapped[float] = mapped_column(Float, default=50.0)
@@ -541,3 +620,403 @@ class PushSubscription(Base):
     token: Mapped[str] = mapped_column(String(512))
     platform: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---------------------------------------------------------------------------
+# Phase 7 — Student experience depth
+# ---------------------------------------------------------------------------
+
+
+class Course(Base):
+    __tablename__ = "courses"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    title: Mapped[str] = mapped_column(String(255))
+    slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    track: Mapped[str] = mapped_column(String(50), default="DSA", index=True)
+    order: Mapped[int] = mapped_column(Integer, default=0)
+    published: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    lessons: Mapped[list["Lesson"]] = relationship(
+        back_populates="course", cascade="all, delete-orphan", order_by="Lesson.order"
+    )
+
+
+class Lesson(Base):
+    __tablename__ = "lessons"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    course_id: Mapped[str] = mapped_column(String(36), ForeignKey("courses.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(255))
+    body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    resource_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    order: Mapped[int] = mapped_column(Integer, default=0)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=15)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    course: Mapped["Course"] = relationship(back_populates="lessons")
+
+
+class LessonProgress(Base):
+    __tablename__ = "lesson_progress"
+    __table_args__ = (UniqueConstraint("user_id", "lesson_id", name="uq_lesson_progress"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    lesson_id: Mapped[str] = mapped_column(String(36), ForeignKey("lessons.id", ondelete="CASCADE"), index=True)
+    status: Mapped[LessonStatus] = mapped_column(Enum(LessonStatus), default=LessonStatus.NOT_STARTED)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class CodingProblem(Base):
+    __tablename__ = "coding_problems"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    title: Mapped[str] = mapped_column(String(255))
+    slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    difficulty: Mapped[QuestionDifficulty] = mapped_column(
+        Enum(QuestionDifficulty), default=QuestionDifficulty.MEDIUM, index=True
+    )
+    topic: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    statement: Mapped[str] = mapped_column(Text)
+    constraints: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sample_tests: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    hidden_tests: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    hidden_tests_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Submission(Base):
+    __tablename__ = "submissions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    problem_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("coding_problems.id", ondelete="CASCADE"), index=True
+    )
+    language: Mapped[str] = mapped_column(String(50), default="python")
+    code: Mapped[str] = mapped_column(Text)
+    verdict: Mapped[SubmissionVerdict] = mapped_column(Enum(SubmissionVerdict), default=SubmissionVerdict.PENDING)
+    runtime_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    output: Mapped[str | None] = mapped_column(Text, nullable=True)
+    passed_tests: Mapped[int] = mapped_column(Integer, default=0)
+    total_tests: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class DiscussionThread(Base):
+    __tablename__ = "discussion_threads"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    author_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    org_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    title: Mapped[str] = mapped_column(String(255))
+    category: Mapped[str] = mapped_column(String(50), default="GENERAL", index=True)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    posts: Mapped[list["Post"]] = relationship(back_populates="thread", cascade="all, delete-orphan")
+
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    thread_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("discussion_threads.id", ondelete="CASCADE"), index=True
+    )
+    author_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    report_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    thread: Mapped["DiscussionThread"] = relationship(back_populates="posts")
+    votes: Mapped[list["Vote"]] = relationship(back_populates="post", cascade="all, delete-orphan")
+
+
+class Vote(Base):
+    __tablename__ = "votes"
+    __table_args__ = (UniqueConstraint("post_id", "user_id", name="uq_vote_post_user"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    post_id: Mapped[str] = mapped_column(String(36), ForeignKey("posts.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    value: Mapped[int] = mapped_column(Integer, default=1)
+
+    post: Mapped["Post"] = relationship(back_populates="votes")
+
+
+class MentorProfile(Base):
+    __tablename__ = "mentor_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    headline: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    expertise: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    seniority: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    availability: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    requests: Mapped[list["MentorRequest"]] = relationship(back_populates="mentor", cascade="all, delete-orphan")
+
+
+class MentorRequest(Base):
+    __tablename__ = "mentor_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    mentor_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("mentor_profiles.id", ondelete="CASCADE"), index=True
+    )
+    mentee_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    status: Mapped[MentorRequestStatus] = mapped_column(
+        Enum(MentorRequestStatus), default=MentorRequestStatus.PENDING
+    )
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    slot: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    mentor: Mapped["MentorProfile"] = relationship(back_populates="requests")
+
+
+class Badge(Base):
+    __tablename__ = "badges"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    code: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    icon: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    xp_reward: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserBadge(Base):
+    __tablename__ = "user_badges"
+    __table_args__ = (UniqueConstraint("user_id", "badge_id", name="uq_user_badge"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    badge_id: Mapped[str] = mapped_column(String(36), ForeignKey("badges.id", ondelete="CASCADE"), index=True)
+    awarded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    badge: Mapped["Badge"] = relationship()
+
+
+# ---------------------------------------------------------------------------
+# Phase 8 — Institutional layer (multi-tenancy)
+# ---------------------------------------------------------------------------
+
+
+class Organization(Base):
+    __tablename__ = "organizations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(255))
+    slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    type: Mapped[OrgType] = mapped_column(Enum(OrgType), default=OrgType.COLLEGE)
+    verified_domains: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    seat_limit: Mapped[int] = mapped_column(Integer, default=100)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    memberships: Mapped[list["Membership"]] = relationship(
+        back_populates="organization", cascade="all, delete-orphan"
+    )
+
+
+class Membership(Base):
+    __tablename__ = "memberships"
+    __table_args__ = (UniqueConstraint("org_id", "user_id", name="uq_membership_org_user"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    org_id: Mapped[str] = mapped_column(String(36), ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    org_role: Mapped[OrgRole] = mapped_column(Enum(OrgRole), default=OrgRole.STUDENT)
+    branch: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    graduation_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cgpa: Mapped[float | None] = mapped_column(Float, nullable=True)
+    status: Mapped[MembershipStatus] = mapped_column(Enum(MembershipStatus), default=MembershipStatus.PENDING)
+    invite_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    organization: Mapped["Organization"] = relationship(back_populates="memberships")
+
+
+class Drive(Base):
+    __tablename__ = "drives"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    org_id: Mapped[str] = mapped_column(String(36), ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    opportunity_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("opportunities.id", ondelete="SET NULL"), nullable=True
+    )
+    company_name: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    ctc: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    eligibility: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    visit_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    status: Mapped[DriveStatus] = mapped_column(Enum(DriveStatus), default=DriveStatus.DRAFT)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    rounds: Mapped[list["DriveRound"]] = relationship(
+        back_populates="drive", cascade="all, delete-orphan", order_by="DriveRound.order"
+    )
+    drive_applications: Mapped[list["DriveApplication"]] = relationship(
+        back_populates="drive", cascade="all, delete-orphan"
+    )
+
+
+class DriveRound(Base):
+    __tablename__ = "drive_rounds"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    drive_id: Mapped[str] = mapped_column(String(36), ForeignKey("drives.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    round_type: Mapped[DriveRoundType] = mapped_column(Enum(DriveRoundType), default=DriveRoundType.OTHER)
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    order: Mapped[int] = mapped_column(Integer, default=0)
+
+    drive: Mapped["Drive"] = relationship(back_populates="rounds")
+
+
+class DriveApplication(Base):
+    __tablename__ = "drive_applications"
+    __table_args__ = (UniqueConstraint("drive_id", "user_id", name="uq_drive_application"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    drive_id: Mapped[str] = mapped_column(String(36), ForeignKey("drives.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    application_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("applications.id", ondelete="SET NULL"), nullable=True
+    )
+    current_round: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(50), default="APPLIED")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    drive: Mapped["Drive"] = relationship(back_populates="drive_applications")
+
+
+# ---------------------------------------------------------------------------
+# Phase 9 — Scale, monetization & data platform
+# ---------------------------------------------------------------------------
+
+
+class Plan(Base):
+    __tablename__ = "plans"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    code: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    price: Mapped[int] = mapped_column(Integer, default=0)
+    currency: Mapped[str] = mapped_column(String(10), default="USD")
+    interval: Mapped[str] = mapped_column(String(20), default="month")
+    entitlements: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    org_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    plan_id: Mapped[str] = mapped_column(String(36), ForeignKey("plans.id", ondelete="RESTRICT"))
+    status: Mapped[SubscriptionStatus] = mapped_column(
+        Enum(SubscriptionStatus), default=SubscriptionStatus.INCOMPLETE
+    )
+    provider: Mapped[str] = mapped_column(String(50), default="stripe")
+    provider_sub_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    seats: Mapped[int] = mapped_column(Integer, default=1)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    plan: Mapped["Plan"] = relationship()
+    invoices: Mapped[list["Invoice"]] = relationship(back_populates="subscription", cascade="all, delete-orphan")
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    subscription_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("subscriptions.id", ondelete="CASCADE"), index=True
+    )
+    amount: Mapped[int] = mapped_column(Integer, default=0)
+    currency: Mapped[str] = mapped_column(String(10), default="USD")
+    status: Mapped[InvoiceStatus] = mapped_column(Enum(InvoiceStatus), default=InvoiceStatus.OPEN)
+    provider_invoice_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    subscription: Mapped["Subscription"] = relationship(back_populates="invoices")
+
+
+class Event(Base):
+    __tablename__ = "events"
+    __table_args__ = (Index("ix_events_name_created_at", "name", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    org_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    name: Mapped[str] = mapped_column(String(100), index=True)
+    properties: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class EmbeddingCache(Base):
+    __tablename__ = "embedding_cache"
+    __table_args__ = (UniqueConstraint("kind", "ref_id", name="uq_embedding_kind_ref"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    kind: Mapped[str] = mapped_column(String(50), index=True)
+    ref_id: Mapped[str] = mapped_column(String(36), index=True)
+    vector: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

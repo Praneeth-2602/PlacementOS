@@ -1,5 +1,5 @@
 from app.config import get_settings
-from app.workers.tasks import deadline_reminder, github_sync, leetcode_sync, score_recalc
+from app.workers.tasks import deadline_reminder, github_sync, judge_run, leetcode_sync, score_recalc
 
 settings = get_settings()
 
@@ -16,7 +16,7 @@ except Exception:
 
 
 class WorkerSettings:
-    functions = [leetcode_sync, github_sync, score_recalc, deadline_reminder]
+    functions = [leetcode_sync, github_sync, score_recalc, deadline_reminder, judge_run]
     try:
         from arq import cron
 
@@ -26,3 +26,6 @@ class WorkerSettings:
     redis_settings = _redis_settings
     max_tries = 3
     job_timeout = 300
+    # Phase 9 scale: bound concurrency + keep results briefly for the admin dashboard.
+    max_jobs = 10
+    keep_result = 3600

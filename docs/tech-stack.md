@@ -70,6 +70,21 @@ PlacementOS/
 
 ---
 
+## Planned (Phase 6+)
+
+Forward-looking stack additions for the productionization, student-depth, institutional, and scale/monetization tracks. These are **design intent** for [`docs/roadmap.md`](roadmap.md) phases 6–9 — not yet implemented. Each mirrors the mapping style above.
+
+| Concern | Planned choice | Rationale |
+|---------|----------------|-----------|
+| Production deploy | Backend → **Railway** (Docker), frontend → **Vercel**, DB → **Neon Postgres**, cache/queue → **Upstash Redis**, ARQ worker as a separate service | Wire the already-listed managed targets into a real prod topology per environment (`.env` matrix); swap local SQLite for Neon and run the worker independently (Phase 6). |
+| In-app coding judge | **Judge0** (self-host/managed) or **piston** | Sandboxed multi-language code execution for in-app problem sets, feeding DSA/track analytics without leaving the app (Phase 7). |
+| Payments / billing | **Stripe** (global), or **Razorpay** for India | Student pro tier + institutional per-seat licensing with feature gating; Razorpay covers India-specific methods (Phase 9). |
+| Multi-tenancy | **Shared schema + `org_id`** scoping; extend existing `UserRole` / `require_roles` guard with `Organization` + `Membership` (STUDENT, TPO, ADMIN) | Reuses the current auth/role stack for org-scoped data isolation with documented trade-offs, avoiding a schema-per-tenant rewrite (Phase 8). |
+| PWA / mobile | **Installable PWA** (offline shell + push via existing `sw.js`), optional **React Native / Expo** path | Ship mobile reach on the current frontend first; evaluate a native path only if warranted (Phase 9). |
+| Event / analytics tracking | Event tracking + **analytics warehouse export** | Product analytics and cohort-benchmark accuracy at volume; foundation for data-driven readiness tuning (Phase 9). |
+
+---
+
 ## Authentication Flow
 
 ```

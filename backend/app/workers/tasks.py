@@ -32,6 +32,16 @@ async def score_recalc(ctx, user_id: str) -> None:
         db.close()
 
 
+async def judge_run(ctx, submission_id: str) -> None:
+    from app.services.judge import process_submission
+
+    db = SessionLocal()
+    try:
+        await process_submission(db, submission_id)
+    finally:
+        db.close()
+
+
 async def deadline_reminder(ctx) -> None:
     db = SessionLocal()
     try:

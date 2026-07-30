@@ -12,3 +12,16 @@ class UserSettingsRequest(BaseModel):
     email_deadline_reminders: bool | None = None
     email_weekly_digest: bool | None = None
     theme: str | None = None
+
+
+class OnboardingRequest(BaseModel):
+    university: str
+    graduation_year: int
+    target_role: str
+    target_companies: list[str] | None = None
+    bio: str | None = None
+
+
+class OnboardingStatusResponse(BaseModel):
+    completed: bool
+    missingFields: list[str]

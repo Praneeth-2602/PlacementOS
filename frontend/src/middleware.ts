@@ -3,12 +3,20 @@ import type { NextRequest } from "next/server";
 
 const protectedPaths = [
   "/dashboard",
+  "/onboarding",
   "/learn",
+  "/content",
+  "/practice",
+  "/community",
+  "/mentors",
   "/prepare",
   "/opportunities",
+  "/drives",
   "/resume",
   "/build",
   "/track",
+  "/org",
+  "/billing",
   "/settings",
 ];
 
@@ -47,12 +55,23 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/onboarding/:path*",
+    "/onboarding",
     "/learn/:path*",
+    "/content/:path*",
+    "/practice/:path*",
+    "/community/:path*",
+    "/mentors/:path*",
     "/prepare/:path*",
     "/opportunities/:path*",
+    "/drives/:path*",
     "/resume/:path*",
     "/build/:path*",
     "/track/:path*",
+    "/org/:path*",
+    "/org",
+    "/billing/:path*",
+    "/billing",
     "/settings/:path*",
   ],
 };

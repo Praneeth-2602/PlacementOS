@@ -115,9 +115,14 @@ export default function PreparePage() {
           <TabsTrigger value="hr">HR</TabsTrigger>
           <TabsTrigger value="mock">Mock Sessions</TabsTrigger>
         </TabsList>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/prepare/interview-twin">Open Interview Twin</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/prepare/study-plan">Study Plan</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/prepare/interview-twin">Open Interview Twin</Link>
+          </Button>
+        </div>
       </div>
 
       <TabsContent value="technical" className="space-y-4">

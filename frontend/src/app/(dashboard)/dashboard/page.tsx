@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 
 import { CommitGraph } from "@/components/dashboard/commit-graph";
 import { MotivationCard, TodaysPlan, UpcomingDeadlines } from "@/components/dashboard/empty-states";
+import { LeaderboardCard, XpBadgeCard } from "@/components/dashboard/gamification";
 import { LeetCodeStatsCard } from "@/components/dashboard/leetcode-stats";
 import { ProgressSnapshot } from "@/components/dashboard/progress-snapshot";
 import { ReadinessGauge } from "@/components/dashboard/readiness-gauge";
@@ -169,6 +170,11 @@ export default function DashboardPage() {
         {dashboard?.github_activity?.contribution_calendar && (
           <CommitGraph calendar={dashboard.github_activity.contribution_calendar} />
         )}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <XpBadgeCard />
+        <LeaderboardCard />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

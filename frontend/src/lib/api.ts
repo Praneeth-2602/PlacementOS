@@ -309,6 +309,361 @@ export interface SyncStatus {
   progress: number;
 }
 
+// ---------------------------------------------------------------------------
+// Phase 6 — Onboarding
+// ---------------------------------------------------------------------------
+
+export interface OnboardingStatus {
+  completed: boolean;
+  missing_fields: string[];
+}
+
+export interface OnboardingPayload {
+  university: string;
+  graduation_year: number;
+  target_role: string;
+  target_companies: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — Content & Roadmaps
+// ---------------------------------------------------------------------------
+
+export type ContentTrack = "DSA" | "CS" | "SYSTEM_DESIGN";
+export type LessonProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+
+export interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
+  track: ContentTrack;
+  order: number;
+  published: boolean;
+  lesson_count?: number;
+  completed_count?: number;
+}
+
+export interface Lesson {
+  id: string;
+  course_id: string;
+  title: string;
+  body?: string | null;
+  resource_url?: string | null;
+  order: number;
+  estimated_minutes?: number | null;
+  status?: LessonProgressStatus;
+}
+
+export interface CourseDetail extends Course {
+  lessons: Lesson[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — Coding Practice
+// ---------------------------------------------------------------------------
+
+export type ProblemDifficulty = "EASY" | "MEDIUM" | "HARD";
+export type SubmissionVerdict =
+  | "PENDING"
+  | "RUNNING"
+  | "ACCEPTED"
+  | "WRONG_ANSWER"
+  | "TIME_LIMIT_EXCEEDED"
+  | "RUNTIME_ERROR"
+  | "COMPILE_ERROR";
+
+export interface SampleTest {
+  input: string;
+  output: string;
+}
+
+export interface CodingProblem {
+  id: string;
+  title: string;
+  slug: string;
+  difficulty: ProblemDifficulty;
+  topic: string;
+  statement?: string;
+  constraints?: string | null;
+  sample_tests?: SampleTest[];
+  solved?: boolean;
+}
+
+export interface Submission {
+  id: string;
+  problem_id: string;
+  language: string;
+  code?: string;
+  verdict: SubmissionVerdict;
+  runtime_ms?: number | null;
+  output?: string | null;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — Community
+// ---------------------------------------------------------------------------
+
+export type ThreadSort = "hot" | "new" | "top";
+
+export interface DiscussionThread {
+  id: string;
+  title: string;
+  category: string;
+  author_name?: string | null;
+  post_count?: number;
+  score?: number;
+  is_hidden?: boolean;
+  created_at: string;
+}
+
+export interface Post {
+  id: string;
+  thread_id: string;
+  author_name?: string | null;
+  body: string;
+  score: number;
+  user_vote?: -1 | 0 | 1;
+  is_hidden?: boolean;
+  created_at: string;
+}
+
+export interface ThreadDetail extends DiscussionThread {
+  posts: Post[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — Mentors
+// ---------------------------------------------------------------------------
+
+export type MentorRequestStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "BOOKED";
+
+export interface MentorProfile {
+  id: string;
+  user_id: string;
+  name?: string | null;
+  avatar_url?: string | null;
+  expertise: string[];
+  seniority: string;
+  availability: string[];
+  is_active: boolean;
+  bio?: string | null;
+}
+
+export interface MentorRequest {
+  id: string;
+  mentor_id: string;
+  mentee_id: string;
+  mentor_name?: string | null;
+  mentee_name?: string | null;
+  status: MentorRequestStatus;
+  slot?: string | null;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — Gamification
+// ---------------------------------------------------------------------------
+
+export interface BadgeItem {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  earned?: boolean;
+  earned_at?: string | null;
+}
+
+export interface GamificationSummary {
+  xp: number;
+  level: number;
+  xp_to_next_level: number;
+  streak_current: number;
+  badges: BadgeItem[];
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  display_name: string;
+  xp: number;
+  is_current_user?: boolean;
+}
+
+export interface Leaderboard {
+  cohort_size: number;
+  opted_in: boolean;
+  entries: LeaderboardEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 8 — Organizations & Institutional
+// ---------------------------------------------------------------------------
+
+export type OrgType = "COLLEGE" | "COMPANY";
+export type OrgRole = "STUDENT" | "TPO" | "ORG_ADMIN";
+export type MembershipStatus = "ACTIVE" | "PENDING" | "REMOVED";
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  type: OrgType;
+  verified_domains: string[];
+  seat_limit: number;
+  seats_used: number;
+  created_at: string;
+  my_role?: OrgRole;
+}
+
+export interface Membership {
+  id: string;
+  org_id: string;
+  user_id: string;
+  name?: string | null;
+  email?: string | null;
+  org_role: OrgRole;
+  branch?: string | null;
+  graduation_year?: number | null;
+  status: MembershipStatus;
+  readiness_score?: number | null;
+}
+
+export interface OrgReadinessAnalytics {
+  cohort_size: number;
+  average_readiness: number;
+  distribution: Array<{ bucket: string; count: number }>;
+  by_branch?: Array<{ branch: string; average: number; count: number }>;
+}
+
+export interface AtRiskStudent {
+  user_id: string;
+  name: string;
+  branch?: string | null;
+  readiness_score: number;
+  reason: string;
+  trend: "declining" | "stagnant" | "inactive";
+}
+
+export interface PlacementFunnel {
+  applied: number;
+  shortlisted: number;
+  interviewed: number;
+  offered: number;
+}
+
+export type DriveStatus = "DRAFT" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
+export type DriveRoundType = "OA" | "TECHNICAL" | "HR" | "GD" | "OTHER";
+
+export interface DriveEligibility {
+  branches: string[];
+  min_cgpa?: number | null;
+  graduation_year?: number | null;
+}
+
+export interface DriveRound {
+  id: string;
+  drive_id: string;
+  name: string;
+  round_type: DriveRoundType;
+  scheduled_at?: string | null;
+  order: number;
+}
+
+export interface Drive {
+  id: string;
+  org_id: string;
+  company_name: string;
+  role?: string | null;
+  eligibility: DriveEligibility;
+  visit_date?: string | null;
+  status: DriveStatus;
+  rounds?: DriveRound[];
+  application_count?: number;
+  is_eligible?: boolean;
+  has_applied?: boolean;
+}
+
+export interface PlacementReport {
+  total_offers: number;
+  median_package: number;
+  placement_percent: number;
+  by_branch: Array<{ branch: string; offers: number; placement_percent: number }>;
+  by_year: Array<{ year: number; offers: number; placement_percent: number }>;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 — Billing & Monetization
+// ---------------------------------------------------------------------------
+
+export type PlanCode = "free" | "student_pro" | "institutional";
+export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "inactive";
+
+export interface Plan {
+  id: string;
+  code: PlanCode;
+  name: string;
+  price: number;
+  currency: string;
+  interval: "month" | "year" | "seat";
+  entitlements: string[];
+  is_active: boolean;
+}
+
+export interface Subscription {
+  id?: string;
+  plan_code: PlanCode;
+  status: SubscriptionStatus;
+  provider?: string | null;
+  seats?: number | null;
+  current_period_end?: string | null;
+  entitlements: string[];
+}
+
+export interface Invoice {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  provider_invoice_id?: string | null;
+  issued_at: string;
+}
+
+export interface CheckoutSession {
+  checkout_url: string;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 — Advanced AI
+// ---------------------------------------------------------------------------
+
+export interface ResumeRewriteSuggestion {
+  section: string;
+  original: string;
+  suggestion: string;
+  rationale?: string | null;
+}
+
+export interface StudyPlanTask {
+  day: number;
+  title: string;
+  category: string;
+  detail: string;
+  estimated_minutes?: number | null;
+}
+
+export interface StudyPlan {
+  generated_at: string;
+  focus_areas: string[];
+  tasks: StudyPlanTask[];
+}
+
+export interface ProblemRecommendation {
+  problem: CodingProblem;
+  reason: string;
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
   const isFormData = init?.body instanceof FormData;
   const response = await fetch(`${getApiUrl()}${path}`, {
@@ -471,7 +826,182 @@ export const api = {
 
   updateUserSettings: (payload: Record<string, unknown>) =>
     apiFetch<User>("/users/settings", { method: "PUT", body: JSON.stringify(payload) }),
+
+  // ----- Phase 6: Onboarding -----
+  onboardingStatus: () => apiFetch<OnboardingStatus>("/users/onboarding/status"),
+  submitOnboarding: (payload: OnboardingPayload) =>
+    apiFetch<User>("/users/onboarding", { method: "POST", body: JSON.stringify(payload) }),
+
+  // ----- Phase 7: Content & Roadmaps -----
+  courses: () => apiFetch<Course[]>("/content/courses"),
+  course: (id: string) => apiFetch<CourseDetail>(`/content/courses/${id}`),
+  lesson: (id: string) => apiFetch<Lesson>(`/content/lessons/${id}`),
+  updateLessonProgress: (id: string, status: LessonProgressStatus) =>
+    apiFetch<Lesson>(`/content/lessons/${id}/progress`, { method: "POST", body: JSON.stringify({ status }) }),
+
+  // ----- Phase 7: Coding Practice -----
+  problems: (params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return apiFetch<CodingProblem[]>(`/practice/problems${query}`);
+  },
+  problem: (id: string) => apiFetch<CodingProblem>(`/practice/problems/${id}`),
+  submitSolution: (id: string, payload: { language: string; code: string }) =>
+    apiFetch<{ submission_id: string }>(`/practice/problems/${id}/submit`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  submission: (id: string) => apiFetch<Submission>(`/practice/submissions/${id}`),
+  problemRecommendations: () => apiFetch<ProblemRecommendation[]>("/practice/recommendations"),
+
+  // ----- Phase 7: Community -----
+  threads: (sort: ThreadSort = "hot") => apiFetch<DiscussionThread[]>(`/community/threads?sort=${sort}`),
+  createThread: (payload: { title: string; category: string; body: string }) =>
+    apiFetch<DiscussionThread>("/community/threads", { method: "POST", body: JSON.stringify(payload) }),
+  thread: (id: string) => apiFetch<ThreadDetail>(`/community/threads/${id}`),
+  replyThread: (id: string, body: string) =>
+    apiFetch<Post>(`/community/threads/${id}/posts`, { method: "POST", body: JSON.stringify({ body }) }),
+  votePost: (id: string, value: -1 | 1) =>
+    apiFetch<Post>(`/community/posts/${id}/vote`, { method: "POST", body: JSON.stringify({ value }) }),
+  reportPost: (id: string, reason: string) =>
+    apiFetch<null>(`/community/posts/${id}/report`, { method: "POST", body: JSON.stringify({ reason }) }),
+
+  // ----- Phase 7: Mentors -----
+  mentors: (params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return apiFetch<MentorProfile[]>(`/mentors${query}`);
+  },
+  upsertMentorProfile: (payload: {
+    expertise: string[];
+    seniority: string;
+    availability: string[];
+    is_active: boolean;
+    bio?: string;
+  }) => apiFetch<MentorProfile>("/mentors/profile", { method: "POST", body: JSON.stringify(payload) }),
+  requestMentor: (id: string, payload: { slot: string; message?: string }) =>
+    apiFetch<MentorRequest>(`/mentors/${id}/request`, { method: "POST", body: JSON.stringify(payload) }),
+  mentorRequests: () => apiFetch<MentorRequest[]>("/mentors/requests"),
+  respondMentorRequest: (id: string, status: "ACCEPTED" | "DECLINED") =>
+    apiFetch<MentorRequest>(`/mentors/requests/${id}/respond`, { method: "POST", body: JSON.stringify({ status }) }),
+
+  // ----- Phase 7: Gamification -----
+  gamification: () => apiFetch<GamificationSummary>("/gamification/summary"),
+  leaderboard: () => apiFetch<Leaderboard>("/gamification/leaderboard"),
+  setLeaderboardOptIn: (opted_in: boolean) =>
+    apiFetch<{ opted_in: boolean }>("/gamification/leaderboard/opt-in", {
+      method: "POST",
+      body: JSON.stringify({ opted_in }),
+    }),
+
+  // ----- Phase 8: Organizations -----
+  createOrg: (payload: { name: string; type: OrgType; verified_domains: string[]; seat_limit: number }) =>
+    apiFetch<Organization>("/org", { method: "POST", body: JSON.stringify(payload) }),
+  org: (id: string) => apiFetch<Organization>(`/org/${id}`),
+  myOrgs: () => apiFetch<Organization[]>("/org"),
+  orgMembers: (id: string, params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return apiFetch<Membership[]>(`/org/${id}/members${query}`);
+  },
+  inviteMembers: (id: string, emails: string[]) =>
+    apiFetch<{ invited: number }>(`/org/${id}/members/invite`, { method: "POST", body: JSON.stringify({ emails }) }),
+  importMembers: (id: string, csv: string) =>
+    apiFetch<{ imported: number; errors: Array<{ row: number; error: string }> }>(`/org/${id}/members/import`, {
+      method: "POST",
+      body: JSON.stringify({ csv }),
+    }),
+  removeMember: (id: string, userId: string) =>
+    apiFetch<null>(`/org/${id}/members/${userId}`, { method: "DELETE" }),
+
+  orgReadiness: (id: string) => apiFetch<OrgReadinessAnalytics>(`/org/${id}/analytics/readiness`),
+  orgAtRisk: (id: string) => apiFetch<AtRiskStudent[]>(`/org/${id}/analytics/at-risk`),
+  orgFunnel: (id: string) => apiFetch<PlacementFunnel>(`/org/${id}/analytics/funnel`),
+
+  orgDrives: (id: string) => apiFetch<Drive[]>(`/org/${id}/drives`),
+  createDrive: (id: string, payload: Partial<Drive>) =>
+    apiFetch<Drive>(`/org/${id}/drives`, { method: "POST", body: JSON.stringify(payload) }),
+  addDriveRound: (id: string, driveId: string, payload: Omit<DriveRound, "id" | "drive_id">) =>
+    apiFetch<DriveRound>(`/org/${id}/drives/${driveId}/rounds`, { method: "POST", body: JSON.stringify(payload) }),
+
+  orgPlacementReport: (id: string, params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return apiFetch<PlacementReport>(`/org/${id}/reports/placement${query}`);
+  },
+  orgReportExportUrl: (id: string, format: "csv" | "pdf") =>
+    `${getApiUrl()}/org/${id}/reports/export?format=${format}`,
+
+  // ----- Phase 8: Student drive view -----
+  drives: () => apiFetch<Drive[]>("/drives"),
+  applyToDrive: (driveId: string) => apiFetch<null>(`/drives/${driveId}/apply`, { method: "POST" }),
+
+  // ----- Phase 9: Billing -----
+  plans: () => apiFetch<Plan[]>("/billing/plans"),
+  subscription: () => apiFetch<Subscription>("/billing/subscription"),
+  checkout: (payload: { plan_code: PlanCode; seats?: number; provider?: string }) =>
+    apiFetch<CheckoutSession>("/billing/checkout", { method: "POST", body: JSON.stringify(payload) }),
+  cancelSubscription: () => apiFetch<Subscription>("/billing/subscription/cancel", { method: "POST" }),
+  invoices: () => apiFetch<Invoice[]>("/billing/invoices"),
+
+  // ----- Phase 9: Advanced AI -----
+  rewriteResume: (id: string, payload?: { jobDescriptionText?: string }) =>
+    apiFetch<ResumeRewriteSuggestion[]>(`/resume/${id}/rewrite`, {
+      method: "POST",
+      body: JSON.stringify(payload ?? {}),
+    }),
+  studyPlan: () => apiFetch<StudyPlan>("/prepare/study-plan", { method: "POST" }),
+
+  // ----- Phase 9: Events -----
+  trackEvent: (name: string, properties?: Record<string, unknown>) =>
+    apiFetch<null>("/events", { method: "POST", body: JSON.stringify({ name, properties: properties ?? {} }) }),
 };
+
+/**
+ * Opens an SSE stream for the streaming Interview Twin (Phase 9).
+ * Falls back gracefully if the backend does not yet support streaming — callers
+ * should handle `onError` by using the non-streaming `respondInterviewTwin`.
+ */
+export async function streamInterviewTwin(
+  payload: { session_id: string; answer: string },
+  handlers: { onToken: (token: string) => void; onDone?: () => void; onError?: (err: Error) => void },
+): Promise<void> {
+  try {
+    const response = await fetch(`${getApiUrl()}/prepare/interview-twin/stream`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok || !response.body) {
+      throw new Error(`Stream error: ${response.status}`);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const data = trimmed.slice(5).trim();
+        if (data === "[DONE]") {
+          handlers.onDone?.();
+          return;
+        }
+        try {
+          const parsed = JSON.parse(data) as { token?: string; content?: string };
+          handlers.onToken(parsed.token ?? parsed.content ?? "");
+        } catch {
+          handlers.onToken(data);
+        }
+      }
+    }
+    handlers.onDone?.();
+  } catch (err) {
+    handlers.onError?.(err instanceof Error ? err : new Error("Stream failed"));
+  }
+}
 
 export function getOAuthUrl(provider: "google" | "github"): string {
   return `${getApiUrl()}/auth/${provider}`;

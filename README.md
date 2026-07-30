@@ -283,6 +283,12 @@ Without optional keys the app still runs: Interview Twin uses mock responses, re
 | **3** | 7–9 | Learn, Prepare, Opportunities modules | ✅ Implemented |
 | **4** | 10–13 | Resume, Build, notifications, polish | ✅ Implemented |
 | **5** | 14–20 | AI Interview Twin, analytics, hardening | ✅ Implemented |
+| **6** | 21–24 | Productionization & launch (deploy, real integrations, QA, hardening) | 🔲 Planned |
+| **7** | 25–30 | Student depth (content/roadmaps, in-app coding judge, community, mentors, gamification) | 🔲 Planned |
+| **8** | 25–32 | Institutional layer (multi-tenancy, TPO/admin dashboards, drive management, reporting) | 🔲 Planned |
+| **9** | 33–40 | Scale, monetization & mobile (billing, PWA/mobile, advanced AI, scale hardening) | 🔲 Planned |
+
+See [`docs/roadmap.md`](./docs/roadmap.md) for the full program overview.
 
 ---
 

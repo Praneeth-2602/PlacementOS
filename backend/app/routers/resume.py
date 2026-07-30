@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import get_current_user, require_entitlement
 from app.models import Resume, User
 from app.schemas.common import ApiResponse
 from app.schemas.resume import ResumeAnalyzeV2Request, ResumeCreateRequest, ResumeResponse, ResumeUpdateRequest
@@ -161,6 +161,23 @@ def analyze_resume_v2(
     result = analyze_v2(text, pages, body.job_description_text)
     row.ats_analysis = {**(row.ats_analysis or {}), "v2": result}
     db.commit()
+    return ApiResponse(data=result)
+
+
+@router.post("/{resume_id}/rewrite", response_model=ApiResponse[dict])
+def rewrite_resume(
+    resume_id: str,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    _gate: Annotated[User, Depends(require_entitlement("resume_rewrite"))] = None,
+):
+    """Section-level rewrite suggestions (Pro feature, Phase 9)."""
+    from app.services.ai import resume_rewrite
+
+    row = db.query(Resume).filter(Resume.id == resume_id, Resume.user_id == user.id).first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found")
+    result = resume_rewrite(row.json_data or {}, row.target_role)
     return ApiResponse(data=result)
 
 

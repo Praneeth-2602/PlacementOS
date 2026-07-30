@@ -4,8 +4,12 @@ from pathlib import Path
 from app.database import SessionLocal
 from app.models import (
     AptitudeProgress,
+    Badge,
+    CodingProblem,
+    Course,
     CSProgress,
     CompanyProfile,
+    Lesson,
     Question,
     QuestionDifficulty,
     QuestionType,
@@ -13,6 +17,8 @@ from app.models import (
     TopicStatus,
     User,
 )
+from app.services.billing import ensure_plans
+from app.services.gamification import BADGE_CATALOG
 
 ROOT = Path(__file__).resolve().parent
 SEEDS = ROOT / "seeds"
@@ -35,6 +41,122 @@ def _expand(base: list[dict], target: int, key: str) -> list[dict]:
         out.append(row)
         idx += 1
     return out
+
+
+_COURSES = [
+    {
+        "slug": "dsa-foundations",
+        "title": "DSA Foundations",
+        "track": "DSA",
+        "order": 1,
+        "description": "Arrays, hashing, two pointers, and sliding window fundamentals.",
+        "lessons": [
+            {"title": "Arrays & Hashing", "estimated_minutes": 30, "resource_url": "https://neetcode.io/roadmap"},
+            {"title": "Two Pointers", "estimated_minutes": 25},
+            {"title": "Sliding Window", "estimated_minutes": 25},
+        ],
+    },
+    {
+        "slug": "cs-fundamentals",
+        "title": "CS Fundamentals",
+        "track": "CS",
+        "order": 2,
+        "description": "Operating systems, DBMS, and networking essentials for interviews.",
+        "lessons": [
+            {"title": "OS: Processes & Threads", "estimated_minutes": 40},
+            {"title": "DBMS: Transactions & Indexes", "estimated_minutes": 40},
+            {"title": "Networking: TCP/IP & HTTP", "estimated_minutes": 35},
+        ],
+    },
+    {
+        "slug": "system-design-basics",
+        "title": "System Design Basics",
+        "track": "SYSTEM_DESIGN",
+        "order": 3,
+        "description": "Scaling, caching, and designing a URL shortener end to end.",
+        "lessons": [
+            {"title": "Scaling & Load Balancing", "estimated_minutes": 45},
+            {"title": "Caching Strategies", "estimated_minutes": 30},
+        ],
+    },
+]
+
+_PROBLEMS = [
+    {
+        "slug": "two-sum",
+        "title": "Two Sum",
+        "difficulty": QuestionDifficulty.EASY,
+        "topic": "arrays",
+        "statement": "Return indices of the two numbers that add up to target.",
+        "constraints": "2 <= n <= 10^4",
+        "sample_tests": [{"input": "2 7 11 15\n9", "output": "0 1"}],
+        "hidden_tests": [{"input": "3 2 4\n6", "output": "1 2"}],
+    },
+    {
+        "slug": "valid-parentheses",
+        "title": "Valid Parentheses",
+        "difficulty": QuestionDifficulty.EASY,
+        "topic": "stack",
+        "statement": "Determine if the input string of brackets is valid.",
+        "constraints": "1 <= n <= 10^4",
+        "sample_tests": [{"input": "()[]{}", "output": "true"}],
+        "hidden_tests": [{"input": "(]", "output": "false"}],
+    },
+    {
+        "slug": "longest-substring",
+        "title": "Longest Substring Without Repeating Characters",
+        "difficulty": QuestionDifficulty.MEDIUM,
+        "topic": "sliding-window",
+        "statement": "Find the length of the longest substring without repeating characters.",
+        "constraints": "0 <= n <= 5*10^4",
+        "sample_tests": [{"input": "abcabcbb", "output": "3"}],
+        "hidden_tests": [{"input": "bbbbb", "output": "1"}],
+    },
+]
+
+
+def _seed_courses(db) -> None:
+    for c in _COURSES:
+        course = db.query(Course).filter(Course.slug == c["slug"]).first()
+        if not course:
+            course = Course(
+                slug=c["slug"],
+                title=c["title"],
+                track=c["track"],
+                order=c["order"],
+                description=c.get("description"),
+                published=True,
+            )
+            db.add(course)
+            db.flush()
+        for i, lesson in enumerate(c["lessons"]):
+            exists = (
+                db.query(Lesson)
+                .filter(Lesson.course_id == course.id, Lesson.title == lesson["title"])
+                .first()
+            )
+            if not exists:
+                db.add(
+                    Lesson(
+                        course_id=course.id,
+                        title=lesson["title"],
+                        order=i,
+                        estimated_minutes=lesson.get("estimated_minutes", 15),
+                        resource_url=lesson.get("resource_url"),
+                    )
+                )
+
+
+def _seed_problems(db) -> None:
+    for p in _PROBLEMS:
+        if not db.query(CodingProblem).filter(CodingProblem.slug == p["slug"]).first():
+            db.add(CodingProblem(**p, is_active=True))
+
+
+def _seed_badges(db) -> None:
+    for b in BADGE_CATALOG:
+        if not db.query(Badge).filter(Badge.code == b["code"]).first():
+            db.add(Badge(**b))
 
 
 def run() -> None:
@@ -149,7 +271,15 @@ def run() -> None:
             if not exists:
                 db.add(CompanyProfile(**row))
 
+        _seed_courses(db)
+        _seed_problems(db)
+        _seed_badges(db)
+
         db.commit()
+
+        # Plans use their own commit (idempotent upsert on plan.code).
+        ensure_plans(db)
+
         print("Seeding complete")
     finally:
         db.close()

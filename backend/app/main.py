@@ -12,16 +12,25 @@ from app.rate_limit import limiter
 from app.routers import (
     admin,
     auth,
+    billing,
     build,
+    community,
+    content,
     dashboard,
+    drives,
+    events,
+    gamification,
     github,
     health,
     interview_twin,
     learn,
     leetcode,
+    mentors,
     notes,
     notifications,
     opportunities,
+    org,
+    practice,
     prepare,
     push,
     readiness,
@@ -91,6 +100,18 @@ def create_app() -> FastAPI:
     app.include_router(interview_twin.router)
     app.include_router(track.router)
     app.include_router(push.router)
+    # Phase 7 — student depth
+    app.include_router(content.router)
+    app.include_router(practice.router)
+    app.include_router(community.router)
+    app.include_router(mentors.router)
+    app.include_router(gamification.router)
+    # Phase 8 — institutional
+    app.include_router(org.router)
+    app.include_router(drives.router)
+    # Phase 9 — monetization + data platform
+    app.include_router(billing.router)
+    app.include_router(events.router)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):

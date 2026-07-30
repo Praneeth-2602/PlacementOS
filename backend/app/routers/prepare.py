@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_user, require_roles
+from app.deps import get_current_user, require_entitlement, require_roles
 from app.models import InterviewSession, Question, StarTemplate, User, UserRole
 from app.schemas.common import ApiResponse
 from app.schemas.prepare import (
@@ -136,6 +136,21 @@ def list_sessions(
 ):
     rows = db.query(InterviewSession).filter(InterviewSession.user_id == user.id).order_by(InterviewSession.created_at.desc()).all()
     return ApiResponse(data=[SessionResponse.model_validate(row) for row in rows])
+
+
+@router.post("/study-plan", response_model=ApiResponse[dict])
+def study_plan(
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    _gate: Annotated[User, Depends(require_entitlement("study_plan"))] = None,
+):
+    """Generate a personalized study plan from readiness gaps (Pro feature, Phase 9)."""
+    from app.services.ai import generate_study_plan
+
+    engine = ReadinessEngine(db)
+    score = engine.get_or_recalculate(user.id)
+    gaps = engine.recommendations(user.id)
+    return ApiResponse(data=generate_study_plan(score, gaps))
 
 
 @router.get("/sessions/stats", response_model=ApiResponse[dict])

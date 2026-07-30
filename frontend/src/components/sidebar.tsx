@@ -4,11 +4,18 @@ import {
   BarChart3,
   BookOpen,
   Briefcase,
+  Building2,
+  CalendarDays,
   ChevronLeft,
+  Code2,
+  CreditCard,
   FileText,
+  GraduationCap,
   Hammer,
   LayoutDashboard,
+  LibraryBig,
   LogOut,
+  MessagesSquare,
   Settings,
   Target,
 } from "lucide-react";
@@ -21,15 +28,45 @@ import { cn, getApiUrl } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui.store";
 import { useUserStore } from "@/stores/user.store";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/learn", label: "Learn", icon: BookOpen },
-  { href: "/prepare", label: "Prepare", icon: Target },
-  { href: "/opportunities", label: "Opportunities", icon: Briefcase },
-  { href: "/resume", label: "Resume", icon: FileText },
-  { href: "/build", label: "Build", icon: Hammer },
-  { href: "/track", label: "Track", icon: BarChart3 },
-  { href: "/settings", label: "Settings", icon: Settings },
+const navSections: Array<{ label: string; items: Array<{ href: string; label: string; icon: typeof LayoutDashboard }> }> = [
+  {
+    label: "Overview",
+    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "Learn & Practice",
+    items: [
+      { href: "/learn", label: "Learn", icon: BookOpen },
+      { href: "/content", label: "Roadmaps", icon: LibraryBig },
+      { href: "/practice", label: "Practice", icon: Code2 },
+      { href: "/prepare", label: "Prepare", icon: Target },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { href: "/community", label: "Community", icon: MessagesSquare },
+      { href: "/mentors", label: "Mentors", icon: GraduationCap },
+    ],
+  },
+  {
+    label: "Career",
+    items: [
+      { href: "/opportunities", label: "Opportunities", icon: Briefcase },
+      { href: "/drives", label: "Drives", icon: CalendarDays },
+      { href: "/resume", label: "Resume", icon: FileText },
+      { href: "/build", label: "Build", icon: Hammer },
+      { href: "/track", label: "Track", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { href: "/org", label: "Institution", icon: Building2 },
+      { href: "/billing", label: "Billing", icon: CreditCard },
+      { href: "/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 export function Sidebar() {
@@ -52,23 +89,30 @@ export function Sidebar() {
         </Button>
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                active ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white",
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{label}</span>}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 space-y-3 overflow-y-auto p-2">
+        {navSections.map((section) => (
+          <div key={section.label} className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 pt-1 text-[10px] font-semibold uppercase tracking-wider text-white/40">{section.label}</p>
+            )}
+            {section.items.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href || pathname.startsWith(`${href}/`);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                    active ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white",
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {!collapsed && <span>{label}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className="border-t border-white/10 p-3">
